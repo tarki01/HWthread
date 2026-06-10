@@ -11,7 +11,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class DynamicThreadPool implements CustomExecutor{
+public class CustomThreadPool implements CustomExecutor{
     private final int corePoolSize;
     private final int maximumPoolSize;
     private final int keepAliveTime;
@@ -25,7 +25,7 @@ public class DynamicThreadPool implements CustomExecutor{
     private final ReentrantLock lock = new ReentrantLock();
     private final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private boolean isWorking = true;
-    public DynamicThreadPool(int corePoolSize, int maximumPoolSize, int keepAliveTime, TimeUnit unit, int queueSize, int minSpareThreads, RejectPolicy rejectPolicy) {
+    public CustomThreadPool(int corePoolSize, int maximumPoolSize, int keepAliveTime, TimeUnit unit, int queueSize, int minSpareThreads, RejectPolicy rejectPolicy) {
         this.corePoolSize = corePoolSize;
         this.maximumPoolSize = maximumPoolSize;
         this.keepAliveTime = keepAliveTime;

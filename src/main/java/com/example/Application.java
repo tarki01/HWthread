@@ -1,6 +1,6 @@
 package com.example;
 
-import com.example.service.concurrent.DynamicThreadPool;
+import com.example.service.concurrent.CustomThreadPool;
 import com.example.wrapper.TaskDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,7 @@ public class Application
     public static void main( String[] args ) throws ExecutionException, InterruptedException {
         AtomicInteger count = new AtomicInteger(0);
 
-        DynamicThreadPool mcts = new DynamicThreadPool(2, 4, 5, TimeUnit.SECONDS, 5, 2, DynamicThreadPool.RejectPolicy.DISCARDPOLICY);
+        CustomThreadPool mcts = new CustomThreadPool(2, 4, 5, TimeUnit.SECONDS, 5, 2, CustomThreadPool.RejectPolicy.DISCARDPOLICY);
         for (int i = 0; i < 10; i++) {
             TaskDescriptor tw = new TaskDescriptor(()-> System.out.println("Мяу"), i, "Крутое описание");
             mcts.execute(tw);
