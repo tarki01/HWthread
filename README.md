@@ -13,6 +13,143 @@
 
 ---
 
+## Запуск проекта
+
+### Требования
+
+- **Java 8 или выше** (используются `java.util.concurrent.*` и лямбда-выражения)
+- **Maven 3.6+** (для управления зависимостями и сборкой)
+- **SLF4J** — логирование (в проекте используется `slf4j-api`, для выполнения нужен бэкенд, например `logback` или `slf4j-simple`)
+
+### Зависимости (pom.xml)
+
+```xml
+<dependencies>
+    <!-- SLF4J API -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>2.0.9</version>
+    </dependency>
+    
+    <!-- Бэкенд для логирования (простой вывод в консоль) -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>2.0.9</version>
+    </dependency>
+    
+    <!-- JUnit для тестов (необязательно, но оставлено из исходного кода) -->
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.13.2</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+### Структура проекта
+
+```
+src/
+├── main/
+│   └── java/
+│       └── com/
+│           └── example/
+│               ├── Application.java                 # Демонстрационная программа
+│               ├── concurrent/
+│               │   └── factory/
+│               │       └── NamedThreadFactory.java  # Фабрика потоков
+│               ├── service/
+│               │   └── concurrent/
+│               │       ├── CustomExecutor.java      # Интерфейс пула
+│               │       └── DynamicThreadPool.java   # Реализация пула
+│               └── wrapper/
+│                   └── TaskDescriptor.java          # Обёртка задачи с описанием
+└── test/
+    └── java/
+        └── com/
+            └── example/
+                └── ApplicationTest.java              # Пустой тест (заглушка)
+```
+
+### Сборка и запуск
+
+#### Способ 1: Через Maven (рекомендуемый)
+
+```bash
+# Перейдите в корневую директорию проекта (где находится pom.xml)
+cd /path/to/project
+
+# Сборка проекта (скомпилирует и соберет JAR)
+mvn clean compile
+
+# Запуск демонстрационной программы
+mvn exec:java -Dexec.mainClass="com.example.Application"
+
+# Или соберите JAR и запустите его
+mvn package
+java -cp target/your-artifact-id-1.0-SNAPSHOT.jar com.example.Application
+```
+
+#### Способ 2: Вручную (без Maven)
+
+```bash
+# Компиляция всех Java файлов
+javac -d out $(find src/main/java -name "*.java")
+
+# Запуск
+java -cp out com.example.Application
+```
+
+#### Способ 3: В IDE (IntelliJ IDEA / Eclipse)
+
+1. Откройте проект как Maven-проект
+2. Дождитесь загрузки зависимостей
+3. Найдите класс `com.example.Application`
+4. Нажмите правой кнопкой → Run 'Application.main()'
+
+### Ожидаемый вывод
+
+При успешном запуске в консоли появится логирование:
+
+```
+[main] INFO com.example.Application - Запуск демонстрации DynamicThreadPool
+[ThreadFactory] Creating new thread: worker-thread-1
+[ThreadFactory] Creating new thread: worker-thread-2
+[ThreadFactory] Creating new thread: worker-thread-3
+[Pool] Task accepted into queue #(0): Крутое описание
+[Worker] worker-thread-1 executes Крутое описание
+Мяу
+[Worker] worker-thread-1 idle timeout, stopping
+[Worker] worker-thread-1 terminated.
+...
+```
+
+### Возможные проблемы и решения
+
+| Проблема | Решение |
+|----------|---------|
+| `ClassNotFoundException: org.slf4j.LoggerFactory` | Добавьте зависимость `slf4j-simple` или другой бэкенд |
+| Потоки не завершаются после shutdown | Убедитесь, что в задаче нет бесконечного цикла или незакрытых ресурсов |
+| Логи не выводятся | Проверьте, что `slf4j-simple` находится в classpath. Для Maven выполните `mvn dependency:copy-dependencies` |
+| `RejectedExecutionException` | При использовании `ABORTPOLICY` это нормальное поведение при перегрузке |
+
+### Настройка логирования (опционально)
+
+Для более детального контроля создайте файл `src/main/resources/simplelogger.properties`:
+
+```properties
+# Уровень логирования: trace, debug, info, warn, error
+org.slf4j.simpleLogger.defaultLogLevel=info
+org.slf4j.simpleLogger.showThreadName=true
+org.slf4j.simpleLogger.showLogName=true
+org.slf4j.simpleLogger.showShortLogName=true
+```
+
+---
+
 ## Анализ производительности
 
 ### Сравнение со стандартным `ThreadPoolExecutor`
