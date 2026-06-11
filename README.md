@@ -2,7 +2,7 @@
 
 ## Обзор архитектуры
 
-Разработанный `CustomThreadPool` представляет собой реализацию кастомного пула потоков с распределением задач по схеме "один поток - одна очередь" (work-stealing с фиксированным закреплением). Каждый `WorkerThread` имеет собственную `BlockingQueue`, а диспетчер (`dispenser`) распределяет задачи по рабочим потокам в циклическом порядке (Round Robin).
+Разработанный `CustomThreadPool` представляет собой реализацию кастомного пула потоков 
 
 ### Ключевые компоненты
 
@@ -20,34 +20,6 @@
 - **Java 8 или выше** (используются `java.util.concurrent.*` и лямбда-выражения)
 - **Maven 3.6+** (для управления зависимостями и сборкой)
 - **SLF4J** — логирование (в проекте используется `slf4j-api`, для выполнения нужен бэкенд, например `logback` или `slf4j-simple`)
-
-### Зависимости (pom.xml)
-
-```xml
-<dependencies>
-    <!-- SLF4J API -->
-    <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>2.0.9</version>
-    </dependency>
-    
-    <!-- Бэкенд для логирования (простой вывод в консоль) -->
-    <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-simple</artifactId>
-        <version>2.0.9</version>
-    </dependency>
-    
-    <!-- JUnit для тестов (необязательно, но оставлено из исходного кода) -->
-    <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.13.2</version>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
 
 ### Структура проекта
 
@@ -229,25 +201,6 @@ if (count.get() < executorThreadQueue.size()) {
 2. **Отсутствие work-stealing** — занятый поток не может "украсть" задачу у другого
 3. **Диспетчер создаёт дополнительную задержку** — задача сначала попадает в очередь диспетчера, затем в очередь воркера
 
-### Рекомендуемые улучшения
-
-1. **Least Loaded Balancing**:
-   ```java
-   WorkerThread selectWorker() {
-       return executorThreadQueue.stream()
-           .min(Comparator.comparingInt(w -> w.getWorkQueue().size()))
-           .orElseThrow();
-   }
-   ```
-
-2. **Direct handoff** (устранение диспетчера):
-   - Использовать `BlockingQueue` для отправки задач напрямую воркерам
-   - Воркеры сами забирают задачи из общего буфера
-
-3. **Work-stealing** (как в `ForkJoinPool`):
-   - Каждый воркер имеет очередь (Deque)
-   - При опустошении своей очереди воркер "крадёт" задачу из конца очереди другого воркера
-
 ---
 
 ## Анализ политик отказа
@@ -266,19 +219,6 @@ if (count.get() < executorThreadQueue.size()) {
 В демонстрационной программе использована `DISCARDPOLICY` по причине:
 - Демонстрация не должна падать с исключениями
 - Тестовые задачи ("Мяу") не критичны к потере
-
-### Недостатки выбранного подхода
-
-1. **Отсутствие метрик** — не ведётся счётчик отброшенных задач
-2. **Нет backpressure** — отправитель не узнаёт о перегрузке системы
-3. **Потенциальная потеря данных** — в реальном сервере это недопустимо для бизнес-операций
-
-### Рекомендация для production
-
-Использовать комбинацию:
-- `CALLERRUNSPOLICY` для критических операций
-- `DISCARDPOLICY` + метрики (Prometheus) для неважных
-- Кастомная политика с записью в persistent queue (Kafka, Disque)
 
 ---
 
