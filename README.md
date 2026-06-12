@@ -87,7 +87,7 @@ java -cp out com.example.Application
 При успешном запуске в консоли появится логирование:
 
 ```
-[main] INFO com.example.Application - Запуск демонстрации DynamicThreadPool
+[main] INFO com.example.Application - Запуск демонстрации CustomThreadPool
 [ThreadFactory] Creating new thread: worker-thread-1
 [ThreadFactory] Creating new thread: worker-thread-2
 [ThreadFactory] Creating new thread: worker-thread-3
